@@ -242,7 +242,144 @@ We can plot this to see see the portfolio composition.
 
 ![Pie Chart of Composition](/Pictures/piechart.png)
 
-Lastly, to determine if the current portfolio has enough to create an emergency fund as part of the member's financial plan. Here we make the ideal case 
+Lastly, to determine if the current portfolio has enough to create an emergency fund as part of the member's financial plan. Here we make the ideal case 3 times the amount of the monthly income (which we noted was 12000 earlier!)
 
+```python
+# Create a variable named emergency_fund_value
+emergency_fund_value = 3 * monthly_income
+emergency_fund_value
+```
+
+Creating an if statment, we can report whether there is enough money for an emergency fund by looking to see if the overall portfolio is worth more than or equal to the `emergency_fund_value`. 
+
+```python
+# Evaluate the possibility of creating an emergency fund with 3 conditions:
+if total_portfolio > emergency_fund_value:
+    print("Congrats you have enough money in this fund!")
+elif total_portfolio == emergency_fund_value: 
+    print("Congrats, you have reached an import financial goal!")
+else: 
+    fund_diff = emergency_fund_values - total_portfolio
+    print(f"You are ${fund_diff : ,.2f} from reaching your goal!")
+```
+
+## Part 3: Monte Carlo for Forecasting Profits. 
+
+First, to forecast, we are setting up the SPY and AGG weights as 60% and 40%, respectively. We will look at three years of back data for the forecast. 
+
+```python
+# Set start and end dates of 3 years back from your current date
+# Alternatively, you can use an end date of 2020-08-07 and work 3 years back from that date 
+start_date_new = pd.Timestamp("2020-05-15", tz="America/New_York").isoformat()
+end_date_new = pd.Timestamp("2023-05-15", tz="America/New_York").isoformat()
+
+# Use the Alpaca get_bars function to make the API call to get the 3 years worth of pricing data
+# The tickers and timeframe parameters should have been set in Part 1 of this activity 
+# The start and end dates should be updated with the information set above
+# Remember to add the df property to the end of the call so the response is returned as a DataFrame
+df_port_new = alpaca.get_bars(
+    tickers,
+    timeframe,
+    start = start_date_new,
+    end = end_date_new
+).df
+
+# Reorganize the DataFrame
+# Separate ticker data
+SPY = df_port_new[df_port_new['symbol']=='SPY'].drop('symbol', axis=1)
+AGG = df_port_new[df_port_new['symbol']=='AGG'].drop('symbol', axis=1)
+
+# Concatenate the ticker DataFrames
+df_port_new = pd.concat([SPY, AGG], axis=1, keys=['SPY', 'AGG'])
+```
+
+To run the Monte Carlo Simulation, we set the portfolio data which is the three year alpaca request we asked prior, weights (60% SPY and 40% AGG), the number of simulations we want (500 days) and the number of trading days (30 years). 
+
+We can then review the simulation. 
+
+```python
+# Configure the Monte Carlo simulation to forecast 30 years cumulative returns
+# The weights should be split 40% to AGG and 60% to SPY.
+# Run 500 samples.
+MC_port_df = MCSimulation(
+    portfolio_data = df_port_new,
+    weights = [0.6, 0.4],
+    num_simulation = 500,
+    num_trading_days = 252*30
+)
+
+# Review the simulation input data
+MC_port_df.portfolio_data
+```
+
+Next, we can run the cumulative return. 
+
+```python
+# Run the Monte Carlo simulation to forecast 30 years cumulative returns
+MC_port_df.calc_cumulative_return()
+```
+
+To look at an overaly of the potential cumulative profits we can call the `.plot_simulation()` function. 
+
+```python
+# Visualize the 30-year Monte Carlo simulation by creating an
+# overlay line plot
+MC_sim_line_plot = MC_port_df.plot_simulation()
+```
+
+This gives us a visual result: 
+
+![Line Plot Overlay](/Pictures/lineplot.png)
+
+Next, a histogram can be viewed to also see distribution of frequency. 
+
+```python
+# Visualize the probability distribution of the 30-year Monte Carlo simulation 
+# by plotting a histogram
+even_weight_dist = MC_port_df.plot_distribution()
+```
+
+![Histogram](/Pictures/histo.png)
+
+Summarizing the data will further allow us to see the potential of profits.
+
+```python
+# Generate summary statistics from the 30-year Monte Carlo simulation results
+# Save the results as a variable
+MC_summary_stats = MC_port_df.summarize_cumulative_return()
+
+
+# Review the 30-year Monte Carlo summary statistics
+print(MC_summary_stats)
+```
+
+![Summary](/Pictures/summary.png)
+
+By taking the 95% upper and lower confidence level, we can anciticipate the range of potential profits in the portfolio over the next 30 years. 
+
+We will use the current portfolio value from earlier to determine the forecasted amount. 
+
+```python
+# Print the current balance of the stock and bond portion of the members portfolio
+print(total_stocks_bonds)
+
+# Use the lower and upper `95%` confidence intervals to calculate the range of the possible outcomes for the current stock/bond portfolio
+ci_lower_thirty_cumulative_return = MC_summary_stats[8] * total_stocks_bonds
+ci_upper_thirty_cumulative_return = MC_summary_stats[9] * total_stocks_bonds
+```
+
+Next, the code looks at a change in weight of the stock and bond portfolio (80% SPY and 20% AGG) and looks to see if this would have a different outcome in the next 10 years. The steps are the same! The only thing that needs to be changed is the setup for the MCSimulation. 
+
+```python 
+# Configure a Monte Carlo simulation to forecast 10 years cumulative returns
+# The weights should be split 20% to AGG and 80% to SPY.
+# Run 500 samples.
+MC_new = MCSimulation(
+    portfolio_data = df_port_new,
+    weights = [.8, .2],
+    num_simulation = 500,
+    num_trading_days = 252*10
+)
+```
 
 
