@@ -227,8 +227,22 @@ total_portfolio = total_crypto_wallet + total_stocks_bonds
 
 ### Part 2: Evaluating the Emergency Fund
 
+In this part, the script looks at the cryptocurrency, stock, and bond in the portfolio to determine if the member has enough savings to build an emergency fund into their financial plan. 
 
+To do this, the script first creates a DataFrame called `savings_df` which takes in the amount and indexes whether the asset amount is cryptocurrency or stock/bonds. 
 
+```python
+# Create a Pandas DataFrame called savings_df 
+savings_df = pd.DataFrame(
+    {"amount": savings_data},
+    index=["crypto", "stock/bond"])
+```
+
+We can plot this to see see the portfolio composition. 
+
+![Pie Chart of Composition](/Pictures/piechart.png)
+
+Lastly, to determine if the current portfolio has enough to create an emergency fund as part of the member's financial plan. Here we make the ideal case 
 
 
 
