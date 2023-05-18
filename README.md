@@ -133,7 +133,7 @@ total_crypto_wallet = btc_value + eth_value
 print(f"Total cryptocurrency wallet balance is ${total_crypto_wallet: ,.2f}")
 ```
 
-### Evaluate the Stock and Bond holdings of the portfolio
+#### Evaluate the Stock and Bond holdings of the portfolio
 
 Now that we know the cryptocurrency being held in the portfolio, we can move to the Stock and Bond holdings.
 
@@ -195,6 +195,37 @@ df_portfolio = pd.concat([SPY, AGG], axis=1, keys=['SPY', 'AGG'])
 # Review the first 5 rows of the Alpaca DataFrame
 df_portfolio.head()
 ```
+
+Since we are only interested in the closing price for our analysis, let's separate the data even further by setting a variable to only hold the closing columns. 
+
+```python
+# Access the closing price for AGG from the Alpaca DataFrame
+# Converting the value to a floating point number
+agg_close_price = df_portfolio["AGG"]['close']
+
+# Access the closing price for SPY from the Alpaca DataFrame
+# Converting the value to a floating point number
+spy_close_price = df_portfolio["SPY"]['close']
+```
+
+Now that we have the closing prices, we can calculate the values of the stock, bond and total value of both given the most recent closing price. We can also calculate the total portfolio's worth by adding the cryptocurrencies wallet as well.
+
+```python
+# Calculate the current value of the bond portion of the portfolio
+agg_value = agg_shares * agg_close_price[-1]
+
+# Calculate the current value of the stock portion of the portfolio
+spy_value = spy_shares * spy_close_price[-1]
+
+# Calculate the total value of the stock and bond portion of the portfolio
+total_stocks_bonds = agg_value + spy_value
+
+# Calculate the total value of the member's entire savings portfolio
+# Add the value of the cryptocurrency walled to the value of the total stocks and bonds
+total_portfolio = total_crypto_wallet + total_stocks_bonds
+```
+
+### Part 2: Evaluating the Emergency Fund
 
 
 
